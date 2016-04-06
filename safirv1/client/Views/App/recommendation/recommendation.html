@@ -1,0 +1,18 @@
+<template name="recommendation">
+   <div class="row"> 
+      {{#each products _id}}
+          <div class="col-md-3 text-center">
+              <a href="/details/{{slug title}}" title="{{title}}"> <img id="loads" src="{{getImgForProduct _id}}" class="img-circle center-block" alt="{{title}}" width="150" height="150"></a>
+              
+              <p class="text-center" style="font-size:12px; height:40px;font-weight:lighter;">    <a href="/details/{{slug title}}" class="linkrecommendation">{{smaller title 4}}
+                  </a>
+              </p>
+              <a href="/details/{{slug title}}" class="linkrecommendation" >
+                <h3 style="font-weight:bold;color:#000; padding-bottom:10px;" class="price{{oldId}}">
+                <h2>{{getAttribprice oldId}}</h2></h3>
+              </a>
+          </div>
+      {{/each}}
+  </div> 
+
+</template>
