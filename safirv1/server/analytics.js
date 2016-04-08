@@ -6,6 +6,7 @@ Meteor.methods({
           console.log(error);
         } else
           console.log('Analytics SERVER RESULT');
+          ga('send', 'event', 'Videos', 'play', 'Fall Campaign');
           console.log(result);
       });
     }
