@@ -1133,21 +1133,7 @@ Template.details.events({
     'click #addtocart': function(e, tpl) {
         e.preventDefault();
         // ga('send', 'event', 'mobile', 'click to call', '888-259-4979');
-        var method = 'POST';
         var url = 'https://www.google-analytics.com/collect?v=1&t=event&tid=UA-71059459-2&cid=555&ec=purchase&ea=click&el=addTocart&ev=1000';
-        var options = {
-            params: {
-                'v': '1',
-                'tid': 'UA-71059459-2',
-                'cid': '5cbeab51-99b0-4c05-88b2-d2ba0d393aa2',
-                't': 'event',
-                'dp': '/',
-                'ec': 'Purchase',
-                'ea': 'click',
-                'el': 'add to card',
-                'ev': '1000'
-            }
-        }
         Meteor.call('eventCall', url, function(error, result) {
             if (error) {
                 console.log('Analytic CLIENT ERRR');
