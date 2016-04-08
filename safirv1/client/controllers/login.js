@@ -89,7 +89,32 @@ Template.login.events({
 	},
 	'click .btn_login': function(event,tpl){
 		event.preventDefault();
-		
+		var method = 'POST';
+        var url = 'https://www.google-analytics.com/collect';
+        var options = {
+            headers: {
+                'v': '1',
+                'tid': 'UA-71059459-2',
+                'cid': '5cbeab51-99b0-4c05-88b2-d2ba0d393aa2',
+                't': 'event',
+                'dp': '/login',
+                'ec': 'Singin',
+                'ea': 'click',
+                'el': 'Login to site',
+                'ev': '1'
+
+            }
+        }
+
+        Meteor.call('eventCall', method, url, options, function(error, result) {
+            if (error) {
+                console.log('Analytic CLIENT ERRR');
+                console.log(error);
+            } else {
+                console.log('Analytic CLIENT RESULT');
+                console.log(result);
+            }
+        });
 		$("#loginError").text("");
 		var fields = $('[name=email]').val();
         email=fields;
