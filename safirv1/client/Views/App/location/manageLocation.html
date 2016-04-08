@@ -1,0 +1,56 @@
+<template name="manageLocation">
+	<div id="wrapper">
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <!-- Page Heading -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                            Manage Location
+                        </h1>
+                        <ol class="breadcrumb">
+                            <li class="active">
+                                <i class="fa fa-dashboard"></i> Dashboard
+                            </li>
+                        </ol>
+                    </div>
+					<div class="col-xs-12 col-sm-6 col-md-12">
+						<a href="/addlocation"><button class="btn btn-primary">{{_ "Add Location"}}</button></a>
+						<br>
+						<br>
+						<div class="table-responsive">
+							<table class="table table-bordered table-hover table-striped">
+								<thead>
+									<tr>
+										<th class="text-center">Name</th>
+										<th class="text-center">Image</th>
+										<th class="text-center">Link</th>
+										<th class="text-center">Type</th>
+										<th class="text-center">Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									{{#each getLocation}}
+									<tr>
+										<td>{{name}}</td>
+										<td><img src="{{getImg image_id}}" width="50" height="50"></td>
+										<td>{{link}}</td>
+										<td>{{type}}</td>
+										<td>
+											<a class="glyphicon glyphicon-trash center-block" href="#" id="remove"></a>
+											<a class="glyphicon glyphicon-edit center-block" href="/updatelocation/{{_id}}"></a>
+
+										</td>
+									</tr>
+									{{/each}}
+								</tbody>
+							</table>
+						</div>
+					</div>
+                </div>
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- /#page-wrapper -->
+    </div>
+</template>

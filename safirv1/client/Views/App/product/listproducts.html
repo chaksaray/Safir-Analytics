@@ -12,11 +12,12 @@
 		#ex2 img:hover { cursor: url(grab.cur), default; }
 		#ex2 img:active { cursor: url(grabbed.cur), default; }
 	</style>
-	 <div class="container contain-top">
+
+				 <div class="container contain-top">
      <div class="img-banner">
-     	{{#if getBanner}}
-		 <img src="{{getImg getBanner}}" class="img-responsive" width="1027" height="280">
-     	{{/if}}
+     	
+		 <img src="{{getImg category.bannercat}}" id="{{category.bannercat}}" class="img-responsive" width="1027" height="280">
+     
 	 </div><br>
 	</div>
 	<div style="margin-left: -40px !important;">
@@ -24,34 +25,35 @@
 	</div>
 	<div class="container">
 		<div class="col-md-12">
-		<div class="hold_result">
+			<div class="hold_result">
 				<p dir="{{getDirection}}">{{nbproducts}}/{{totalProducts}}{{_ "products result"}}</p>
-			</div>
-                <div class="hold_bradcame">
-                    <a id="bestSelling" class="" href="#" style="text-decoration:none;">
-                     &nbsp;{{_ "Best selling"}}</a>
-                    <a id="name" class="reward-sell" href="#" style="text-decoration:none;">
-                     &nbsp;&nbsp;&nbsp;{{_ "Sort Name"}} </a>
-                    <a id="price" class="reward-sell" href="#" style="text-decoration:none;">
-                      &nbsp;&nbsp;&nbsp;{{_ "Sort Price"}}
-                    </a>
-                </div>
+			</div>{{testQuizz}}
+            <div class="hold_bradcame">
+                <a id="bestSelling" class="" href="#" style="text-decoration:none;">
+                 &nbsp;{{_ "Best selling"}}</a>
+                <a id="name" class="reward-sell" href="#" style="text-decoration:none;">
+                 &nbsp;&nbsp;&nbsp;{{_ "Sort Name"}} </a>
+                <a id="price" class="reward-sell" href="#" style="text-decoration:none;">
+                  &nbsp;&nbsp;&nbsp;{{_ "Sort Price"}}
+                </a>
+            </div>
               
-		<!-- / content -->
-			<div class="hold_product">
-				{{#each products}}
-				<div class="col-xs-6 col-md-3 product_item">
+			<div class="all-product">
+				<ul class="list-inline">
+					{{{oneStyleProduct products}}}
+				</ul>
+				<!--{{#each products}}
+					<div class="col-xs-6 col-md-3 product_item">
 					<div class="thumbnail text-left">
 						<div class="caption" style="padding:0px;margin:0px;text-align:center;">
 							<div class="btn#e4332a">
 								<a href="" style="" class="label label-danger" id="quickbtn" rel="tooltip" data-toggle="modal" data-target="#quickView">{{_"Quickview"}}</a>
 							</div>
-							
 						</div>
 						
 						<div class="clearfix" style="width: 100%; margin-bottom:2px; height:150px; text-align:center">
 							<a href="/details/{{slug title}}" title="{{title}}">
-        					<img src="{{getImgForProduct _id}}" style="width:150px; height:150px;" class="img-responsive img-circle" alt="{{title}}">
+        					<img src="{{getImgForProduct _id}}" style="width:150px; height:150px;" class="img-responsive" alt="{{title}}">
        						</a>
 						</div>
 
@@ -71,18 +73,43 @@
 
 					</div>
 				</div>
-				{{/each}}
 
-				
+				{{/each}}-->
 			</div>
+			<!-- <div class="all-product">
+				<ul class="list-inline">
+					{{#each products}}
+					<li class="col-md-3 col-sm-6">
+						<div class="thumbnail">
+							<div class="hold-quickview">
+								<a href="/details/{{slug title}}"><img src="{{getImgForProduct _id}}" alt=""></a>
+								<div class="quickview">
+									<button type="button" class="btn btn-quickview center-block btn-block" id="quickbtn" rel="tooltip" data-toggle="modal" data-target="#quickView">Quick View</button>
+								</div>
+							</div>
+							<div class="caption">
+								<p class="title"><a href="/details/{{slug title}}">{{smaller title 8}}</a></p>
+								 <div class="rating">
+									<span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star-empty"></span><span class="glyphicon glyphicon-star-empty"></span>
+								</div>
+								<p><a href="#" class="price pull-left">{{price}} $</a>
+								<a href="#" class="unlike unlike{{_id}} heart pull-right" data-id="{{_id}}"><span  class="fa fa-heart-o fonfa"></span></a>
+                       			<a href="#" class="like nonelike like{{_id}} heart pull-right" data-id="{{_id}}"><span style="color:red" class="fa fa-heart fonfa"></span></a>
+
+								</p>
+							</div>
+						 </div>
+					</li>
+					{{/each}}
+				</ul>
+			</div> -->
 		</div>
 	</div>
 	<div class="modal" id="quickView" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="margin-top:30px;">
-		{{#each getSelectedProduct}}
-		{{#with this}}
+		
+		{{#with getSelectedProduct}}
 		<div class="modal-dialog" role="document">
 			<div class="modal-content" style="width: 150%; margin: 0px 0px 0px -150px !important;">
-				  <!-- Modal content-->
 					  <div class="modal-content">
 						<div class="modal-header" style="background:#000; padding:0px;" >
 						  <button type="button" class="close" data-dismiss="modal"><img src="/images/pop_cancel.png"></button>
@@ -159,10 +186,17 @@
 					</div>
 					</div>
 					{{/with}}
-					{{/each}}
+				
 					<script>
 					$('.modal-backdrop').remove();
 					</script>
 				</div>
 
+				<script>
+					// $(document).on('mouseenter', '.hold-quickview', function () {
+					// $(this).find(":button").show();
+					// }).on('mouseleave', '.hold-quickview', function () {
+					// $(this).find(":button").hide();
+					// });
+				</script>
 </template>

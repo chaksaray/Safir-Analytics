@@ -89,7 +89,13 @@
 		                                        <div class="form-group">
 		                                            <label>{{_"Answer_Tag"}}</label>
 		         
-			                                        <input class="form-control" id="alltag_input" required/>
+			                                        <!-- <input class="form-control" id="alltag_input" required/> -->
+													<select id="ans_tag" class="form-control">
+														<option value="">Choose tag</option>
+														{{#each getAnsTag}}
+															<option value="{{tag_quizz}}">{{tag_quizz}}</option>
+														{{/each}}
+													</select>
 			                                         <button id="btnAdd" class="btn btn-primary pull-right btn-sm">{{_"add Tag"}}</button>
 
 		                                        </div>

@@ -16,20 +16,20 @@
 						</ol>
 					</div>
 					<div class="col-sm-6 pull-right">
-						<label class="control-label" for="Brand">SORT BY TAG</label>
+						<label class="control-label" for="Brand">{{_"SORT BY TAG"}}</label>
 
 						<div class="panel panel-default">
 
 							<div class="panel-body">
 
-								<select class="form-control" id="sortcate" placeholder="Select Category">
-									<option value="">Select Category</option>
+								<select class="form-control" id="sortcate" placeholder="{{_"Select Category"}}">
+									<option value="">{{_"Select Category"}}</option>
 									{{#each getCatSort}}
 									<option value="{{_id}}">{{title}}</option>
 									{{/each}}
 								</select>
 								<select class="form-control" id="sorttag" style="margin-top:15px;">
-									<option value="">Select Tag</option>
+									<option value="">{{_"Select Tag"}}</option>
 									{{#each getParentTagSort}}
 									<option value="{{_id}}">{{title}}</option>
 									{{/each}}
@@ -40,9 +40,9 @@
 					<!-- Manage product sort brand -->
 
 					<div class="col-sm-4 pull-right">
-						<label class="control-label" for="Brand">SORT BY BRAND</label>
+						<label class="control-label" for="Brand">{{_"SORT BY BRAND"}}</label>
 						<select class="form-control" id="brandname">
-							<option value="">Select Brand</option>
+							<option value="">{{_"Select Brand"}}</option>
 							{{#each getBrandSort}}
 							<option value="{{this}}">{{this}}</option>
 							{{/each}}
@@ -64,6 +64,9 @@
 										<th class="text-center" style="width:10%">{{_"Point"}}</th>
 										<th class="text-center" style="width:10%">{{_"Attribute image"}}</th>
 										<th class="text-center" style="width:15%">{{_"Image"}}</th>
+										<th class="text-center" style="width:15%">
+										{{_"Video Upload"}}</th>
+										<th class="text-center" style="width:15%">{{_"Youtube URL"}}</th>
 										<th class="text-center" style="width:15%">{{_"Category"}}</th>
 										<th class="text-center" style="width:15%" colspan="5">{{_"Tools"}}</th>
 
@@ -86,6 +89,18 @@
 											{{#each getListImg _id}}
 											<img style="width:50px; height:50px" src="{{getImg this}}">
 											{{/each}}
+										</td>
+										<td>
+										{{#if video}}	
+											{{#each getListVideo _id}}
+											<video width="300" controls>
+                                        		<source src="{{getImg this}}" type="video/mp4">
+                                    		</video>
+                                    		{{/each}}
+                                    	{{/if}}
+										</td>
+										<td>
+											<iframe width="300" height="auto" src="{{videoUrl}}" frameborder="0" allowfullscreen></iframe>
 										</td>
 										<td>{{catName category}}</td>
 										{{#if checkStatus status}}

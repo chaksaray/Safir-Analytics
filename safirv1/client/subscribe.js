@@ -1,4 +1,5 @@
-
+Meteor.subscribe('locations');
+Meteor.subscribe("shopLearnIt");
 TAPi18n.subscribe("categories");
 Meteor.subscribe("posts");
 

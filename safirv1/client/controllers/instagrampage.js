@@ -4,14 +4,14 @@ Session.set("msgerror", "");
 Session.set("registerinstaError", "")
 Template.instagrampage.onRendered(function() {
     this.$("#instaModal").modal('show');
-    $(".modal-backdrop").addClass("modal-backdrop-insta");
-    $(".modal-backdrop").removeClass("modal-backdrop in");
+    $(".modal").addClass("modal-backdrop-insta");
+    $(".modal-backdrop").removeClass("modal-backdrop");
     $('#instaModal').on('hidden.bs.modal', function () {
         Router.go('/home');
-    })
+    });
     $('#instaModalcomfirm').on('hidden.bs.modal', function () {
         Router.go('/profile');
-    })  
+    });
 });
 
 Template.instagrampage.events({
@@ -42,6 +42,21 @@ Template.instagrampage.events({
                 // console.log("userid");
                 // console.log(firstname);
                 // console.log(istagramId);
+                HTTP.post("http://localhost:3030/api/v1/instagramuserinfo", {
+                    data: {
+                        "api_key": "ab9ca2acb8ffad76cb31f21e543e11f2",
+                        "ig_userid": istagramId
+
+                    }
+                }, function(error, response) {
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        var obj = response.data.user;
+                        Session.set('users', obj);
+
+                    }
+                });
                 Session.set("idinstauser", istagramId);
                 var image = user.services.instagram.profile_picture;
                 var sex = '';

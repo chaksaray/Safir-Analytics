@@ -56,7 +56,13 @@ Template.header.events({
 		var currenturl = window.location.href
 		var location = 'Header';
 
+	},
+	'click .menuclick':function(){
+		var id = this._id;
+		//alert(id);
+		Session.set("MENUID",id);
 	}
+
 });
 Template.mainLayout.events({
 	'mouseenter #mainContent':function(e){
@@ -72,6 +78,7 @@ Template.mainLayout.events({
 
 Template.header.events({
 	'click #en':function(e,tpl){
+		e.preventDefault();
 		if(TAPi18n.getLanguage()=='fa'){
 			var lang='en';			
 			$("body").css("font-family","HelveticaNeue, sans-serif");
@@ -85,7 +92,7 @@ Template.header.events({
 		}
 		
 		Session.set('LANG',lang);
-		
+		item1 = 0,counter1 = 0, item2 = 0, counter2 = 0, item3 = 0, counter3 = 0;
 		
 		TAPi18n.setLanguage(lang).done(function () {
 			Session.set("showLoadingIndicator", false);

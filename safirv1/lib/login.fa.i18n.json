@@ -18,5 +18,9 @@
 	"Thanks for joined us!":"از اینکه به ما پیوستید، متشکریم",
 	"You have successfully registered":"ثبت نام شما با موفقیت انجام گردید",
 	"You can now login":"حال می توانید وارد سایت شوید",
-	"Your password should be at least 6 characters and contain a capital letter and one lowercase letter":"رمز عبور شما مي بايست حداقل ٦ كاراكتر و شامل يك حرف بزرگ و يك حرف كوچك باشد"
+	"Your password should be at least 6 characters and contain a capital letter and one lowercase letter":"رمز عبور شما مي بايست حداقل ٦ كاراكتر و شامل يك حرف بزرگ و يك حرف كوچك باشد",
+	"Firstname is required":"نام مورد نیاز است.",
+	"Lastname is required":"نام خانوادگی مورد نیاز است",
+	"Email is required":"ایمیل مورد نیاز است",
+	"Password is required":"رمز عبور مورد نیاز است"
 }

@@ -40,6 +40,7 @@ Template.quizzQA.events({
 		var countses = Session.get('sesIndex');
 		
 		if(countqu == countses){
+			Session.set('sesIndex',0);
 			var userId=Meteor.userId();
 			var quizz=arr;
 			console.log("quizz " + quizz);

@@ -1,6 +1,4 @@
-
 products = new TAPi18n.Collection("products");
-
 posts = new TAPi18n.Collection("posts");
 categories = new TAPi18n.Collection('categories');
 shops = new Meteor.Collection('shops');
@@ -82,3 +80,9 @@ products_node = new Mongo.Collection('products_node');
 quizzQA = new Mongo.Collection('quizzQA');
 discount = new Mongo.Collection('discount');
 collect = new Mongo.Collection('collect');
+//quicklink_type = new TAPi18n.Collection('quick_type');
+quicklink = new TAPi18n.Collection('quicklink');
+shopLearnIt = new Mongo.Collection('shopLearnIt');
+locations = new Mongo.Collection('locations');
+invoices = new Mongo.Collection('invoices');
+receipts = new Mongo.Collection('receipts');

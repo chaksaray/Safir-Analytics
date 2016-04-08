@@ -74,7 +74,9 @@
 										<!-- {{each image.}} -->
 										<div class="col-lg-3 col-sm-3">
 											<img class="img-thumbnail" style="width:100px; height:100px;" src="{{getImg imageName}}">
-											<input type="checkbox" name="checkImg" id="check" value="{{imageId}}" checked>
+											<div class="updateCheck">
+												<input type="checkbox" name="checkImg" id="check" value="{{imageId}}" checked>
+											</div>
 										</div>
 
 										{{/each}}

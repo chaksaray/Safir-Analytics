@@ -1,7 +1,7 @@
 Session.set("filter","");
 Session.set('fiterValue',"");
 Session.set('removefilter','');
-Session.set('numberOfReviews',2);
+Session.set('numberReviews',false);
 Template.addreviewsreyden.events({
 	'click #addreview': function(e,tpl){
 		e.preventDefault();

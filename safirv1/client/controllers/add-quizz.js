@@ -19,13 +19,49 @@ Template.addquizz.helpers({
 			
 		}
 		return arr;
+	},
+	getParentTag:function(){
+		return parent_tags.find();
+	},
+	getTag:function(){
+		var tag = Session.get("TAG_VALUE");
+		if(tag)
+			return tags.find({parent:tag});
+		else
+			return false;
+	},
+	getAnsTag:function(){
+		Meteor.call('getAnsQuizz',function(err,data){
+			if(err){
+				console.log("Cannot get ans quizz: "+err.reason);
+			}else{
+				Session.set('ANSQUIZZ',data);
+			}
+		});
+		var ansqu = Session.get('ANSQUIZZ');
+		var arr = [];
+		for(var i=0;i<ansqu.length;i++){
+			if(ansqu[i]!=''){
+				var obj={
+					tag_quizz:ansqu[i]
+				}
+				arr.push(obj);
+			}
+		}
+		//console.log("ANSWER Q: "+JSON.stringify(arr));
+		return arr;
 	}
 });
 
 Template.addquizz.events({
+	'change #ans_tag':function(){
+		var ans_tag = $('#ans_tag').val();
+		Session.set("ANSTAG",ans_tag);
+	},
 	'submit form':function(e){
 		e.preventDefault();
-		var answer_tag =$("#alltag_input").val();
+		//var answer_tag =$("#alltag_input").val();
+		var answer_tag = Session.get('ANSTAG');
 		if(Session.get("AddTag")){
 			var allTags = Session.get('AddTag')+";"+answer_tag;
 			Session.set("AddTag",allTags);
@@ -194,7 +230,8 @@ Template.addquizz.events({
 		$(e.currentTarget).parent().parent().remove();
 	},
 	'click #remove_div':function(e){
-		var num = $(e.currentTarget).attr("data-num");
+		// var num = $(e.currentTarget).attr("data-num");
+		$(e.currentTarget).parent().parent().remove();
 	},
 	'keyup #question':function(){
 		$("#quizz_required").html("");
@@ -203,19 +240,6 @@ Template.addquizz.events({
 		$("#answer_required").html("");
 	}
 });
-Template.addquizz.helpers({
-	getParentTag:function(){
-		return parent_tags.find();
-	},
-	getTag:function(){
-		var tag = Session.get("TAG_VALUE");
-		if(tag)
-			return tags.find({parent:tag});
-		else
-			return false;
-	}
-})
-
 // ============================ UPDATE QUIZZ AND ANSWER ===================== //
 Template.updatequizz.helpers({
 	listTag:function(){

@@ -1,3 +1,4 @@
+
 Template.dailyPopup.helpers({
 	getMyPopup:function(){
 		function shuffle(o){

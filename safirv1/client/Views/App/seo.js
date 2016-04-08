@@ -6,6 +6,9 @@ Meteor.startup(function() {
         },
         og: {
           'image': '/images/system/logo.png' 
+        },
+        fb:{
+        	'app_id':"1712707052305819"
         }
       });
 });

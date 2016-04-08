@@ -128,7 +128,7 @@ a.social-icon:hover, a.social-icon:active, a.social-icon:focus
     border-color: #000000;
     color: #fff;
 }
-.btn {
+/*.btn {
     -moz-user-select: none;
     background-image: none;
     border: 1px solid transparent;
@@ -143,7 +143,7 @@ a.social-icon:hover, a.social-icon:active, a.social-icon:focus
     text-align: center;
     vertical-align: middle;
     white-space: nowrap;
-}
+}*/
 .space_btn{
 	padding-bottom:15px;
 
@@ -341,7 +341,7 @@ a.social-icon:hover, a.social-icon:active, a.social-icon:focus
     border-color: #000000;
     color: #fff;
 }
-.btn {
+/*.btn {
     -moz-user-select: none;
     background-image: none;
     border: 1px solid transparent;
@@ -357,7 +357,7 @@ a.social-icon:hover, a.social-icon:active, a.social-icon:focus
     vertical-align: middle;
     white-space: nowrap;
     margin-bottom: 10px;
-}
+}*/
 .btn-view{
     -moz-user-select: none;
     background-image: none;

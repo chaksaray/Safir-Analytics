@@ -46,10 +46,10 @@ var IR_BeforeHooks = {
         if (Meteor.isClient) {
             var now = new Date();
             // console.log(" today is "+now.getDay() +" hours "+now.getHours()+" Minutes "+ now.getMinutes() +" Second "+ now.getSeconds());
-            if (now.getDay() == 3 && now.getHours() == 24 && now.getMinutes() == 1 && now.getSeconds() == 1) {
+            if (now.getDay() == 3 && now.getHours() == 10 && now.getMinutes() == 10 && now.getSeconds() == 10) {
                 Meteor.call('catSiteMap');
             }
-            if (now.getHours() == 24 && now.getMinutes() == 2 && now.getSeconds() == 2) {
+            if (now.getHours() == 10 && now.getMinutes() == 2 && now.getSeconds() == 2) {
                 Meteor.call('proSiteMap');
             }
         }
@@ -90,7 +90,9 @@ var routerNameAdmin = [
     'manageDiscount',
     'updateProDiscount',
     'manageCollect',
-    'updateCollect'
+    'updateCollect',
+    'adminorder',
+    'adminorderdetail'
 
 ];
 var routerNameMember = [
@@ -110,7 +112,6 @@ Router.before(IR_BeforeHooks.isAdmin, { only: routerNameAdmin });
 Router.before(IR_BeforeHooks.isAdminOrMember, { only: routerNameMember }); //for member
 Router.onAfterAction(IR_BeforeHooks.trackingRouter);
 Router.onAfterAction(IR_BeforeHooks.sitemap);
-Router.onAfterAction(IR_BeforeHooks.checksource);
 
 
 //Router.onBeforeAction(IR_BeforeHooks.MySubscription);

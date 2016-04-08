@@ -47,5 +47,20 @@ Template.memberReview.helpers({
      getProductDetail:function(){
 		var id = this._id;
 		console.log("PRODUCT ID======="+id);
+	},
+	getRate:function(num){
+		var rate=$('fa-star-o');
+		var allhtm='';
+		var html='<div class="col-xs-2 rate-star"><i class="fa fa-star-o" data-star="1"></i></div>'
+		var htmlyellow='<div class="col-xs-2 rate-star"><i class="fa fa-star-o yellow-star" data-star="1"></i></div>'
+		for(var i=0;i<5;i++){
+			if(i<=Number(num)){
+				allhtm+=htmlyellow
+			}else{
+				allhtm+=html;
+			}
+			
+		}
+		return allhtm;
 	}
 });

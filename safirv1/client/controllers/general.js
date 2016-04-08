@@ -1,7 +1,10 @@
-
 // No need to command this function (getImgForProduct & getImg), please.
 Template.registerHelper('getImgForProduct', function (id_product) {
     //console.log('calling img for '+id_product);
+    return getImgForProduct(id_product);
+
+});
+getImgForProduct = function(id_product){
     var p=products.findOne({_id:id_product});
     if(p.image instanceof Array)
         var id= p.image[0];
@@ -14,7 +17,7 @@ Template.registerHelper('getImgForProduct', function (id_product) {
     else if(id.indexOf("uploads")>-1){
         id=id.replace(/ /g, "%20");
         path = id.replace('/uploads/images/','');
-        return 'http://164.138.19.140/upload/images/'+path;
+        return 'http://164.138.19.140/images/'+path;
 
     }
     else if(id.indexOf("http://")>-1){ 
@@ -26,19 +29,21 @@ Template.registerHelper('getImgForProduct', function (id_product) {
         if(img){
             var id= img.copies.images.key;
             //path=id.replace('images','');
-            //return 'http://164.138.19.140/upload/'+path;
-            return '/uploads/'+id;
+            return 'http://164.138.19.140/'+id;
+            //return '/uploads/'+id;
         }else{
             return;
         } 
     }
-
-});
-
+}
 //For user upload
 Template.registerHelper('getImg', function (id) {
     console.log("IMG "+id);
-    if(id=='' || typeof id == "undefined")
+    return getImg( id );
+
+});
+getImg = function ( id ) {
+   if(id=='' || typeof id == "undefined")
         return '/img/unknown.png';
 
     else if(id.indexOf("uploads/images")>-1){
@@ -63,8 +68,7 @@ Template.registerHelper('getImg', function (id) {
             return;
         } 
     }
-
-});
+}
 // end
 
 Template.registerHelper('trimString', function(passedString) {
@@ -203,7 +207,9 @@ Template.registerHelper("smaller",function(text,size){
 });
 
 Template.registerHelper("slug",function(){
-    var title = this.title;
+    return slugname( this.title );
+});
+var slugname = function( title ){
     title = title.replace(/\-/g,"(minus)");
     title = title.replace(/\s/g,"-");
     title = title.replace(/\%/g,"(percentag)");
@@ -227,7 +233,7 @@ Template.registerHelper("slug",function(){
     title = title.replace(/\–/g,"(hyphen)");
     //title = title.toLowerCase();
     return title;
-});
+}
     
 Template.registerHelper("unSlug",function(){
     var title = this.title;
@@ -269,6 +275,7 @@ Template.registerHelper("getMenuClass",function(index){
         return 'dropdown_fullwidth';
         if(index==1)
             return 'dropdown_fullwidth';
+            //return 'dropdown_6columns dropdown_container';
         index=Number(index);
         var newIndex=12-(1*index);
         var str='dropdown_'+newIndex+'columns dropdown_container'
@@ -301,10 +308,26 @@ Template.registerHelper("convertMsTimeStamp", function(tms) {
     });
 // ==========makara=======================
 Template.registerHelper("getReviewBySort", function(review) {
+    var attr=[];
+
     var result=review.sort(function(x, y){
     return y.date - x.date;
-    })
-    return result;
+    });
+    if(Session.get("numberReviews") == false){
+        if (review.length<5){
+            return result;
+        }else{
+            for (var i=0;i<5;i++){
+            attr.push(result[i]);           
+            }
+            return attr;
+        }
+        return attr;
+    }else{
+        return result;
+    }
+    
+    
 });
 //======end makara==============================
 
@@ -348,3 +371,151 @@ Template.registerHelper("getListprice", function(oldId) {
         return attrprice;
 
     }); 
+//====================relate product content====================
+Template.registerHelper('related_product',function(categoryId){
+        var resultRandom=products.find();
+        var dataLenght=false;
+        if(resultRandom.count()>0) dataLenght=true;
+        return {productsRelat:resultRandom,dataLenght:dataLenght};
+});
+item1 = 0;
+counter1 = 0;
+item2 = 0;
+counter2 = 0;
+item3 = 0;
+counter3 = 0;
+
+Template.registerHelper('oneSlide1',function( data ){
+    if( data ){
+        var html = '';
+        data.forEach( function(value, index){
+            var result =  products.findOne({"_id":value});
+            item1 = item1 + 1;
+            counter1 = counter1 +1;
+             var active = '';
+            if( counter1 ==1) active = 'active';
+            if( item1 == 1){
+                html += '<div class="item '+active+'"><div class="row">';
+            }
+            html += oneProduct(result);
+            if( item1 ==4 ){
+                 html += '</div></div>';
+                 item1 = 0;
+            }     
+        });
+        return html;
+    }
+});
+Template.registerHelper('oneSlide2',function( data ){
+    if( data ){
+        var html = '';
+        data.forEach( function(value, index){
+            var result =  products.findOne({"_id":value});
+            item2 = item2 + 1;
+            counter2 = counter2 +1;
+             var active = '';
+            if( counter2 ==1) active = 'active';
+            if( item2 == 1){
+                html += '<div class="item '+active+'"><div class="row">';
+            }
+            html += oneProduct(result);
+            if( item2 ==4 ){
+                 html += '</div></div>';
+                 item2 = 0;
+            }     
+        });
+        return html;
+    }
+});
+Template.registerHelper('oneSlide3',function( data ){
+    if( data ){
+        var html = '';
+        data.forEach( function(value, index){
+            var result =  products.findOne({"_id":value});
+            item3 = item3 + 1;
+            counter3 = counter3 +1;
+             var active = '';
+            if( counter3 ==1) active = 'active';
+            if( item3 == 1){
+                html += '<div class="item '+active+'"><div class="row">';
+            }
+            html += oneProduct(result);
+            if( item3 ==4 ){
+                 html += '</div></div>';
+                 item3 = 0;
+            }     
+        });
+        return html;
+    }
+});
+Template.registerHelper('getSelectedProduct',function( ){
+
+    var id = Session.get('quickview');
+    console.log('Quick View:'+ id);
+    if(id=='')
+        return null;
+
+    var currentProduct=products.findOne({"_id":id});
+    console.log( 'Data Count:'+ currentProduct )
+    return currentProduct;
+});
+Template.home.events({
+    'click #quickbtn': function(e,tpl){
+         e.preventDefault();
+        var productId = $(e.currentTarget).attr('data-id');
+        Session.set('quickview', productId);
+    }
+})
+Template.listproducts.events({
+    'click #quickbtn': function(e,tpl){
+        e.preventDefault();
+        var productId = $(e.currentTarget).attr('data-id');
+        Session.set('quickview', productId);
+    }
+})
+Template.recommendation.events({
+    'click #quickbtn': function(e,tpl){
+         e.preventDefault();
+        var productId = $(e.currentTarget).attr('data-id');
+        Session.set('quickview', productId);
+    }
+})
+Template.registerHelper('oneStyleProduct',function( products ){
+    if( products ){
+        var data = '';
+        products.forEach( function(value, index ){
+            data += oneProduct(value);
+        })
+        return data;
+    }
+})
+
+oneProduct = function(result){
+    var product_id = result._id;
+    var title = result.title;
+    var price = result.price;
+
+    var img = getImgForProduct( result._id);
+    var myslug = slugname( title );
+
+    var html = '';
+    html += '<li class="col-md-3 col-sm-6">';
+    html +=     '<div class="thumbnail">';
+    html +=         '<div class="hold-quickview">';
+    html +=             '<a href="/details/'+myslug+'"><img src="'+img+'" alt="'+title+'"></a>';
+    html +=             '<div class="quickview"><button type="button" data-id="'+product_id+'" id="quickbtn" class="btn btn-quickview center-block btn-block" data-toggle="modal" data-target="#quickView">Quick View</button></div>';
+    html +=         '</div>';
+    html +=         '<div class="caption">';
+    html +=             '<p class="title"><a href="/details/'+myslug+'">'+title+'</a></p>';
+    html +=             '<div class="rating">';
+    //html +=                 '<span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star-empty"></span><span class="glyphicon glyphicon-star-empty"></span></div>';
+    html +=                 '<p>';
+    html +=                     '<a class="price pull-left">'+price+' </a>';
+    //html +=                     '<a href="#" data-id="'+product_id+'" class="heart pull-right unlike unlike'+product_id+'"><span class="fa fa-heart-o"></span></a>';
+    //html +=                     '<a href="#" data-id="'+product_id+'" class="heart pull-right like nonelike like'+product_id+'"><span class="fa fa-heart fa-heart-full"></span></a>';
+    html +=                 '</p>';
+    html +=             '</div>';
+    html +=        '</div>';
+    html += '</li>';
+    return html;
+}

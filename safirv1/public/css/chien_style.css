@@ -119,14 +119,20 @@ z-index: 0;
 
 /*Add style by chien 23/02/2016*/
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 84b07d7900c907abb4d248ea642c09c2bd8507dc
 
 .gp_products_carousel_control_icons{
     font-size: 20px !important;
     line-height: 65px;
     
 }
+<<<<<<< HEAD
 =======
 >>>>>>> 2c268b82341ae6af1bd724a1dd51e42cdf4803ba
+=======
+>>>>>>> 84b07d7900c907abb4d248ea642c09c2bd8507dc
 .gp_products_carousel_control_icons:hover{
     background: #ccc;
     width:30px;
@@ -139,7 +145,7 @@ ul.dropdown-menu li a:hover{
     color: #fff !important;
 }
 
-.glyphicon {
+/*.glyphicon {
     position: relative !important;
     top: -16px !important;
     display: inline-block;
@@ -150,8 +156,13 @@ ul.dropdown-menu li a:hover{
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: black;
-    margin-left: 60px !important;
+<<<<<<< HEAD
+    /*margin-left: 60px !important;
+}*/
+=======
+    /*margin-left: 60px !important;*/
 }
+>>>>>>> 84b07d7900c907abb4d248ea642c09c2bd8507dc
 /*Add style by chien 27/02/2016*/
 .space-top-star:hover {
     color: #fcd821;

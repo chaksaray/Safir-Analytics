@@ -10,20 +10,25 @@ Router.configure({
     }
 
 });
+
 Router.route('/newmenu', {
     name: 'newmenu'
 });
+
 Router.route('/dailyPopup', {
 
     name: 'dailyPopup'
 });
+
 Router.route('/profilenew', {
     name: 'profilenew'
 });
+
 Router.route('/testview', {
 
     name: 'testview'
 });
+
 Router.route('/', {
     //layoutTemplate: 'homeLayout',
     name: 'home',
@@ -32,7 +37,11 @@ Router.route('/', {
     },
     //fastRender: true
 });
-
+// Meteor.Router.add({
+//   '/': function() {
+//     GAnalytics.pageview();
+//     return 'home';}
+// });
 Router.route('/login', {
     name: 'login',
 });
@@ -47,7 +56,8 @@ Router.map(function() {
         //template: 'payment',
         where: 'server',
         action: function() {
-            //console.log('dataa:'+JSON.stringify(this.params));
+            var error = 0;
+            var success = 0;
             console.log('request:' + JSON.stringify(this.request.body));
             if (typeof this.request.body.State === 'undefined' || this.request.body.State === null) {
                 console.log('No paramater from this payment!');
@@ -61,16 +71,134 @@ Router.map(function() {
                     trace: this.request.body.TRACENO
                 };
 
+                if (reponse.state == 'OK') {
+                    var check = receipts.find({ refnum: reponse.refnum }).fetch();
+                    if (check.length > 0) {
+                        error = 'Error this receipt exist already!';
+                    } else {
+                        receipts.insert(reponse);
+                        var url = 'https://SEP.shaparak.ir/payments/referencepayment.asmx?WSDL';
+                        var args = {
+                            RefNum: reponse.refnum,
+                            MID: reponse.mid
+                        };
+                        try {
+                            var client = Soap.createClient(url);
+                            var result = client.VerifyTransaction(args);
+                            if (result < 0) {
+                                switch (result) {
+                                    case -1:
+                                        error = 'Internal Error';
+                                        break;
+                                    case -2:
+                                        error = 'Deposits are not alike';
+                                        break;
+                                    case -3:
+                                        error = 'Inputs include invalid characters';
+                                        break;
+                                    case -4:
+                                        error = 'Merchant Authentication Failed (user name or password is incorrect)';
+                                        break;
+                                    case -5:
+                                        error = 'Database Exception';
+                                        break;
+                                    case -6:
+                                        error = 'The transaction has been completely reversed already';
+                                        break;
+                                    case -7:
+                                        error = 'RefNum is Null';
+                                        break;
+                                    case -8:
+                                        error = 'Input length is more than allowed one';
+                                        break;
+                                    case -9:
+                                        error = 'Invalid characters in reversed value';
+                                        break;
+                                    case -10:
+                                        error = 'RefNum is not in form of Base64 (includes invalid characters)';
+                                        break;
+                                    case -11:
+                                        error = 'Input length is less than allowed one';
+                                        break;
+                                    case -12:
+                                        error = 'Reversed amount is negative';
+                                        break;
+                                    case -13:
+                                        error = 'Reversed amount of a partial reverse is more than a non-reversed value of RefNum';
+                                        break;
+                                    case -14:
+                                        error = 'The transaction is not recorded';
+                                        break;
+                                    case -15:
+                                        error = 'Data type of reversed amount is double or float';
+                                        break;
+                                    case -16:
+                                        error = 'Internal Error';
+                                        break;
+                                    case -17:
+                                        error = 'Partial reversed of a transaction has been done by a bank card except for Saman card';
+                                        break;
+                                    case -18:
+                                        error = 'Invalid IP address of merchant';
+                                        break;
+                                    default:
+                                        error = 'VERIFY success!';
+                                }
+                            } else {
+                                console.log("VERIFY...");
+                                console.log(result);
+                                var myInvoice = invoices.find({ resNum: reponse.resNum }).fetch();
+                                if (myInvoice.length == 1) {
+                                    myInvoice = myInvoice[0];
+                                    if (myInvoice.amount == result) {
+                                        //success
+                                        success = 'Payment success! No error!';
+                                    } else {
+                                        error = 'The amount are different... Refund in progress';
+                                        //reverseTransaction
+                                        var newArg = {
+                                            RefNum: reponse.refnum,
+                                            MID: reponse.mid,
+                                            Username: reponse.mid,
+                                            Password: '9224397'
+                                        }
+                                        var statusReverse = client.ReverseTransaction(newArg);
+                                        if (statusReverse == 1)
+                                            error = error + ' Refund succes!';
+                                        else
+                                            error = error + ' Refund failed!';
+                                    }
+                                } else {
+                                    error = 'Too much invoice with the same ID. Amount=' + result + ';ResNum=' + reponse.resNum;
+                                }
+                            }
 
-                console.log('Payment has result:' + JSON.stringify(reponse));
+
+                        } catch (err) {
+                            if (err.error === 'soap-creation') {
+                                console.log('SOAP Client creation failed');
+                            } else if (err.error === 'soap-method') {
+                                console.log('SOAP Method call failed');
+                            }
+                        }
+
+                    }
+                } else {
+                    error = 'Transaction failed: ' + reponse.state;
+                }
 
                 this.response.writeHead(200, {
                     'Content-Type': 'text/html; charset=utf-8'
                 });
-                var html = '<a href="/checkout">Back to safir</a>';
+                if (success == 0) {
+                    var html = '<div class="alert alert-success"><strong>Validated!</strong> Payment success!</div><a href="/checkout">Back to safir</a>';
+
+                } else {
+                    var html = '<div class="alert alert-danger"><strong>Error!</strong> The payment failed. Here is the reasons: ' + error + '</div><a href="/checkout">Back to safir</a>';
+
+                }
                 this.response.end(JSON.stringify(html));
             }
-            //this.render('login');
         }
     })
 });
@@ -141,10 +269,9 @@ Router.route('/category/:id', {
         var name = this.params.id;
         name = name.replace(/-/g, " ");
         return [Meteor.subscribe("productsCategory", -1, name), TAPi18n.subscribe('categories'), TAPi18n.subscribe('categoryParent_tags', name), TAPi18n.subscribe('categoryTags', name), Meteor.subscribe("favoriteCategory", name)];
-        // return [TAPi18n.subscribe("productsCategory",-1),TAPi18n.subscribe('categories')];
+
     },
     data: function() {
-        //Session.set('querylimit',16);
         var name = this.params.id;
         name = name.replace(/-/g, " ");
         var l = categories.findOne({ "title": name });
@@ -175,14 +302,10 @@ Router.route('/category/:id', {
         }
 
         var parent = l._id;
-        //====chein====
         Session.set('idBanner', parent);
-        //====end chein==
-        //=========makara=============
         Session.set('advancedlimit', '');
         if (Session.get('oldUrlId') !== parent) {
             Session.set('querylimit', 16);
-            //delete Session.keys['advanced_brand','advanced_tags'];
             Session.set('advanced_brand', '');
             Session.set('advanced_tags', '');
             Session.set('advanced_price_max', 100000000);
@@ -190,7 +313,7 @@ Router.route('/category/:id', {
         }
         Session.set('oldUrlId', parent);
         Session.set('refineCateId', parent);
-        //=========end makara=========
+
         var arr = [parent];
         Session.set('subcategories', arr);
         var finalList = [];
@@ -262,7 +385,6 @@ Router.route('/category/:id', {
             }
 
         }
-        //var result=products.find({"category":{$in:Session.get('subcategories')}},{limit:limit});///////////////
         Session.set('nbproducts', result.fetch().length);
         Session.set('allproducts', total);
         if (Session.get('finishQuizz') == '') {
@@ -315,7 +437,6 @@ Router.route('/category/:id', {
         });
     },
     onStop: function() {
-        //console.log('leaving category!');
         Session.set('currentAnswer', '');
         Session.set('parentAnswer', '');
         Session.set('finishQuizz', '');
@@ -325,8 +446,6 @@ Router.route('/category/:id', {
 Router.route('/details/:id', {
     name: 'details',
     waitOn: function() {
-        //console.log('SELECTION DES ATTRIBUTS DE '+this.params.id);
-        //console.log('SELECTION DES ATTRIBUTS DE '+this.params.id);
         var title = this.params.id;
         title = title.replace(/\-/g, " ");
         title = title.replace(/\(percentag\)/g, "%");
@@ -349,19 +468,12 @@ Router.route('/details/:id', {
         title = title.replace(/\(dolla\)/g, "$");
         title = title.replace(/\(eaccentgrave\)/g, "è");
         title = title.replace(/\(hyphen\)/g, "–");
-        console.log('PRODUCT NAME=' + title);
-        //console.log("TITLE="+title);
-        // return [Meteor.subscribe("productsDetails",-1),Meteor.subscribe("attributeProDetails",-1,title),TAPi18n.subscribe("parent_tags"),TAPi18n.subscribe("tags"),TAPi18n.subscribe("parentattrProDetails"),Meteor.subscribe("contentsProDetails")];
         return [Meteor.subscribe("rendomProduct", title), Meteor.subscribe("attributeProDetails", -1, title), TAPi18n.subscribe("detailsParent_tags", title), TAPi18n.subscribe("detailsTags", title), TAPi18n.subscribe("parentattrProDetails")];
     },
     data: function() {
-        //======makara========
         $('.close').click(); //close modal when go to detail
-        //======end makara====
         Session.set('miniature', 0);
 
-        //alert('ROUTZER');
-        //var prod=products.findOne({"_id": this.params.id});
         var title = this.params.id;
         title = title.replace(/\-/g, " ");
         title = title.replace(/\(percentag\)/g, "%");
@@ -385,30 +497,21 @@ Router.route('/details/:id', {
         title = title.replace(/\(eaccentgrave\)/g, "è");
         title = title.replace(/\(hyphen\)/g, "–");
 
-        //console.log("TITLE="+title);
         var prod = products.findOne({ "title": title });
-
-        //finding users
-        //console.log('PRODUICT='+prod._id);
         if (typeof prod != "undefined" && typeof prod.review != "undefined") {
-            //console.log("WOOOW");
             var list_users = [];
             for (var i = 0; i < prod.review.length; i++) {
                 list_users.push(prod.review[i].user);
                 console.log(prod.review[i].user);
             }
-            //console.log('finish susbcri');
             Session.set('users_to_subsribe', list_users);
         }
         if (prod != null) {
-            //console.log('mon titre'+prod);
             var attr = attribute.findOne({ "product": prod.oldId });
-            //console.log('RECUP LE PRIX:'+p.fetch()[0].price);
             if (attr != null) {
                 Session.set('selected_price', attr.price);
                 Session.set('selected_point', attr.point);
             }
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -467,30 +570,19 @@ Router.route('/detail/:name', {
     },
     data: function() {
         Session.set('miniature', 0);
-        //alert('ROUTZER');
         var title = this.params.name;
         title = title.replace(/\(o-cir\)/g, "ô");
         title = title.replace(/\(plus\)/g, "+");
         title = title.replace(/-/g, " ");
-
-        // alert(title);
-        //alert('title='+title);{$regex: new RegExp(keyword, "i")}
         var prod = products.findOne({ "title": { $regex: new RegExp(title, "i") } });
 
 
         if (prod != null) {
-            //console.log('mon titre'+prod);
             var attr = attribute.findOne({ "product": prod.oldId });
-
-
-            //console.log('RECUP LE PRIX:'+p.fetch()[0].price);
             if (attr != null) {
                 Session.set('selected_price', attr.price);
                 Session.set('selected_point', attr.point);
-                //Session.set('barcode',attr.barcode);
             }
-
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return { productde: prod, relateproduct: result };
         }
@@ -508,7 +600,6 @@ Router.route('/translateproduct/:id', {
 
         var prod = products.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -522,7 +613,6 @@ Router.route('/producttranslate/:id', {
 
         var prod = products.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -536,7 +626,6 @@ Router.route('/translate_category/:id', {
 
         var prod = categories.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -550,7 +639,6 @@ Router.route('/translateparentTag/:id', {
 
         var prod = parent_tags.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -564,7 +652,6 @@ Router.route('/translatTags/:id', {
 
         var prod = tags.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -578,7 +665,6 @@ Router.route('/translatParent_attr/:id', {
 
         var prod = parentattr.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -586,8 +672,6 @@ Router.route('/translatParent_attr/:id', {
     }
 });
 
-
-//Meteor.subscribe("attribute")
 Router.route('/transleattribute_value/:id', {
     name: 'transleattribute_value',
     template: 'transleattribute_value',
@@ -595,7 +679,6 @@ Router.route('/transleattribute_value/:id', {
 
         var prod = attribute_value.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -612,7 +695,6 @@ Router.route('/transleshops/:id', {
 
         var prod = shops.findOne({ "_id": this.params.id });
         if (prod != null) {
-            //console.log('ID='+this.params.id+' /'+JSON.stringify(prod));
             Session.set('currentCategory', prod.category);
             return prod;
         }
@@ -637,7 +719,6 @@ Router.route('/editprofile', {
 Router.route('/reward', {
     name: 'reward',
     waitOn: function() {
-        // return [Meteor.subscribe('users',this.userId),TAPi18n.subscribe("products",-1)];
         return [Meteor.subscribe('users', this.userId), Meteor.subscribe("contents_type"), Meteor.subscribe('productsrewards')];
 
     }
@@ -667,7 +748,6 @@ Router.route('/updatecategory/:_id', {
 
     }
 });
-
 
 // shop
 Router.route('/manageshop', {
@@ -758,7 +838,7 @@ Router.route('/advanced', {
     name: 'advanced',
     template: 'listproducts',
     waitOn: function() {
-        return [TAPi18n.subscribe('products', -1), TAPi18n.subscribe('categories'), TAPi18n.subscribe('parent_tags'), TAPi18n.subscribe('tags'),Meteor.subscribe("favorite")];
+        return [TAPi18n.subscribe('products', -1), TAPi18n.subscribe('categories'), TAPi18n.subscribe('parent_tags'), TAPi18n.subscribe('tags'), Meteor.subscribe("favorite")];
     },
     data: function() {
         var list_categories = [];
@@ -794,8 +874,6 @@ Router.route('/advanced', {
             }
         }
 
-        //console.log('CURRENTCATEGORY='+list_categories);
-
         Session.set('limit', -1);
         Session.set('oldUrlId', '')
         if (Session.get('advancedlimit') !== 'advanced') {
@@ -806,7 +884,6 @@ Router.route('/advanced', {
         var list_tags = [];
         var review_part = {};
 
-        //console.log('brands:'+Session.get('advanced_brand'));
         if (Session.get('advanced_brand') != '')
             list_brand = Session.get('advanced_brand').split(';');
         if (Session.get('advanced_tags') != '')
@@ -821,17 +898,12 @@ Router.route('/advanced', {
             priceMax = Session.get('advanced_price_max');
         priceMax = Number(priceMax);
 
-        //list_tags=Session.get('advanced_tags').split(';');
-        //var list_tags=Session.get('advanced_tags');
-
-
         var has_comment = Session.get('advanced_has_comment');
         var is_favorite = Session.get('advanced_is_favorite');
 
         if (list_brand.length == 0) {
 
             var allProducts = products.find().fetch();
-            //console.log('Remplissage des Brand: '+allProducts.length);
             for (var i = 0; i < allProducts.length; i++) {
                 if (list_brand.indexOf(allProducts[i].Brand) < 0)
                     list_brand.push(allProducts[i].Brand);
@@ -877,25 +949,57 @@ Router.route('/advanced', {
                 arrayobj.push(value);
             } else {
                 if (value.price >= priceMin && value.price < priceMax) {
-                    //alert('hello');
                     arrayobj.push(value);
                 }
             }
 
         });
-        //}
 
         Session.set('nbproducts', arrayobj.length);
-        return { products: arrayobj };
-
+        var Tosort = Session.get("GETName");
+        if (Tosort == 'name') {
+            var Arrobj = arrayobj.sort(function(a, b) {
+                if (a.title < b.title)
+                    return -1;
+                else if (a.title > b.title)
+                    return 1;
+                else
+                    return 0;
+            });
+            return { products: Arrobj };
+        } else if (Tosort == 'price') {
+            var Arrobj = arrayobj.sort(function(a, b) {
+                var acon = Number(a.price);
+                var bcon = Number(b.price);
+                if (acon < bcon)
+                    return 1;
+                else if (acon > bcon)
+                    return -1;
+                else
+                    return 0;
+            });
+            return { products: Arrobj };
+        } else if (Tosort == 'sell') {
+            var Arrobj = arrayobj.sort(function(a, b) {
+                if (a.ratio < b.ratio)
+                    return 1;
+                else if (a.ratio > b.ratio)
+                    return 1;
+                else
+                    return 0;
+            });
+            return { products: Arrobj };
+        } else {
+            return { products: arrayobj };
+        }
     }
 });
 
 Router.route('/favorite', {
-    name: 'favorite',
-    template: 'listproducts',
+    name: 'fav',
+    // template: 'listproducts',
     waitOn: function() {
-        return [TAPi18n.subscribe("products", -1), Meteor.subscribe("favorite")];
+        return [TAPi18n.subscribe("products", -1), Meteor.subscribe("favorite"), Meteor.subscribe('bannerfavorite')];
     },
     data: function() {
         Session.set('limit', -1);
@@ -911,18 +1015,14 @@ Router.route('/favorite', {
         var obj = {};
         data.forEach(function(entry) {
             var proid = entry.proId;
-            //===makara=====
             var like = "#like" + entry.proId;
             var unlike = "#unlike" + entry.proId;
             $(like).removeClass('nonelike');
             $(unlike).addClass('nonelike');
-            //===end makara=
             obj = products.findOne({ _id: proid });
             object.push(obj);
 
         });
-        //console.log(object);
-        //alert('favorite='+object.length);
         Session.set('nbproducts', object.length);
         return { products: object };
     }
@@ -931,13 +1031,14 @@ Router.route('/favorite', {
 Router.route('/searchproduct/:slug', {
     template: 'searchproduct',
     waitOn: function() {
-        return [Meteor.subscribe("productsCategory"), TAPi18n.subscribe('categories'), Meteor.subscribe("contents")];
+        return [Meteor.subscribe("productsCategory"), TAPi18n.subscribe('categories'), Meteor.subscribe("contents"), Meteor.subscribe("contents_type")];
     },
     data: function() {
         var productsearch = Session.get('keyword');
         //var productsearch = this.params.slug;
         // alert("ok" + productsearch);
-
+        // var keyword = Session.get('keyword');
+        // console.log('parameter:'+keyword);
         /*var keyword = Session.get('keyword');
         console.log('parameter:'+keyword);
         if(keyword==""){
@@ -955,48 +1056,42 @@ Router.route('/searchproduct/:slug', {
         var querylimit = Session.get('querylimitsearch');
 
         var keyword = this.params.slug;
-        //=========makara=============
         if (Session.get('oldKey') !== keyword) {
             Session.set('querylimitsearch', 16);
         }
         Session.set('oldKey', keyword);
-        //=========end makara=========
-        //alert('router:'+keyword);
         var groupid = parseInt(Session.get('groupsearch'));
-        //alert('groupid:'+groupid);
         if (keyword != "") {
-            //console.log("group:"+groupid);
+            console.log("group:" + groupid);
             var result = [];
             var result1 = [];
             if (groupid == 1) {
-                //console.log('search products');
+                console.log('search products');
                 result = products.find({ $or: [{ $and: [{ title: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }] }, { $and: [{ description: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }] }] }, { limit: querylimit }).fetch();
                 var dataCount = products.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { description: { $regex: new RegExp(keyword, "i") } }] }).count();
                 Session.set("searchall", "");
             } else if (groupid == 4) {
-                //console.log('search webzine');
+                console.log('search webzine');
                 var webzine = contents_type.findOne({ type: "Webzine" });
-                result1 = contents.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { content: { $regex: new RegExp(keyword, "i") } }], typeid: webzine._id }, { limit: querylimit }).fetch();
+                result1 = contents.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }, { content: { $regex: new RegExp(keyword, "i") } }], typeid: webzine._id }, { limit: querylimit }).fetch();
                 Session.set("searchall", "");
             } else if (groupid == 5) {
-                // console.log('search tuto');
+                console.log('search tuto');
                 var tuto = contents_type.findOne({ type: "Tuto" });
-                result1 = contents.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { content: { $regex: new RegExp(keyword, "i") } }], typeid: tuto._id }, { limit: querylimit }).fetch();
+                result1 = contents.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }, { content: { $regex: new RegExp(keyword, "i") } }], typeid: tuto._id }, { limit: querylimit }).fetch();
                 Session.set("searchall", "");
 
             } else {
-                //alert('hollo');
-                // console.log('search all on all');
-                result = products.find({ $or: [{ $and: [{ title: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }] }, { $and: [{ description: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }] }] }, { limit: querylimit }).fetch();
-                var dataCount = products.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { description: { $regex: new RegExp(keyword, "i") } }] }).count();
-                result1 = contents.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { content: { $regex: new RegExp(keyword, "i") } }] }, { limit: querylimit }).fetch();
+                console.log('search all on all');
+                result = products.find({ $or: [{ $and: [{ title: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }] }, { tag_quizz: { $regex: new RegExp(keyword, "i") } }, { "tags.value": { $regex: new RegExp(keyword, "i") } }, { $and: [{ description: { $regex: new RegExp(keyword, "i") } }, { category: { $ne: 'tester' } }] }] }, { limit: querylimit }).fetch();
+                var dataCount = products.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { tag_quizz: { $regex: new RegExp(keyword, "i") } }, { "tags.value": { $regex: new RegExp(keyword, "i") } }, { description: { $regex: new RegExp(keyword, "i") } }] }).count();
+                result1 = contents.find({ $or: [{ title: { $regex: new RegExp(keyword, "i") } }, { tag_quizz: { $regex: new RegExp(keyword, "i") } }, { "tags.value": { $regex: new RegExp(keyword, "i") } }, { content: { $regex: new RegExp(keyword, "i") } }] }, { limit: querylimit }).fetch();
                 Session.set("searchall", 1);
 
             }
 
             Session.set('nbproducts', result.length);
             Session.set('nbcontents', result1.length);
-            //alert('FINISH ROUTING');
             return { product: result, content: result1, dataCount: dataCount };
 
         } else {
@@ -1025,7 +1120,14 @@ Router.route('/webzinedetails/:_id', {
     data: function() {
         var name = this.params._id;
         name = name.replace(/-/g, " ");
-        return contents.findOne({ "title": { $regex: new RegExp(name, "i") } });
+        var con = contents.findOne({ "title": { $regex: new RegExp(name, "i") } });
+        var data = '';
+        if (con) {
+            var img_id = con.image[0];
+            var url = getImg(img_id);
+            data = { result: con, img_url: url };
+        }
+        return data;
     },
     waitOn: function() {
         var name = this.params._id;
@@ -1057,12 +1159,14 @@ Router.route('/webzinedetails/:_id', {
     onAfterAction: function() {
         var name = this.params._id;
         name = name.replace(/-/g, " ");
-        var content = contents.findOne({ "title": { $regex: new RegExp("^" + name, "i") } });
+        var data = this.data();
+        var result = data.result;
+        console.log(result);
         if (!Meteor.isClient) {
             return;
         }
-        if (content.content) {
-            var contentDesc = content.content.replace(/(\<[^\>]*\>)|(\&nbsp\;)|(\\n)|(\s\s+)/g, "");
+        if (result.content) {
+            var contentDesc = result.content.replace(/(\<[^\>]*\>)|(\&nbsp\;)|(\\n)|(\s\s+)/g, "");
             if (contentDesc.length > 160) {
                 contentDesc = contentDesc.trim().substring(0, 160).split(" ").slice(0, -1).join(" ") + "…";
             } else {
@@ -1070,13 +1174,13 @@ Router.route('/webzinedetails/:_id', {
             }
         }
         SEO.set({
-            title: content.title + " | Safir Iran",
+            title: result.title + " | Safir Iran",
             meta: {
-                'description': contentDesc
+                'description': result.content
             },
             og: {
-                'title': content.title + " | Safir Iran",
-                'description': contentDesc
+                'title': result.title + " | Safir Iran",
+                'image': data.img_url
             }
         });
     }
@@ -1084,10 +1188,10 @@ Router.route('/webzinedetails/:_id', {
 
 Router.route('/addContent', {
     name: 'addContent',
-
     template: 'addContent',
-
-
+    waitOn: function() {
+        return [Meteor.subscribe("contents_type")];
+    }
 });
 
 Router.route('/updateContent/:_id', {
@@ -1162,7 +1266,6 @@ Router.route('/tutolisting/:_id', {
         var name = this.params._id;
         console.log('mytuto:' + name);
         name = name.replace(/-/g, " ");
-        //alert('title='+title);
         console.log('mytuto:' + name);
         var cat = categories.findOne({ "title": { $regex: new RegExp(name, "i") } });
         if (cat == null)
@@ -1219,27 +1322,58 @@ Router.route('/tutolisting/:_id', {
 Router.route('/tutodetails/:_id', {
     name: 'tutodetails',
     waitOn: function() {
-        // return [Meteor.subscribe("contents"),TAPi18n.subscribe("products",-1)];
-        return [Meteor.subscribe("contents"), Meteor.subscribe("contents_type")];
+        var name = this.params._id;
+        name = name.replace(/-/g, " ");
+        var title = name;
+        title = title.replace(/\-/g, " ");
+        title = title.replace(/\(percentag\)/g, "%");
+        title = title.replace(/\(plush\)/g, "+");
+        title = title.replace(/\(ocir\)/g, "ô");
+        title = title.replace(/\(minus\)/g, "-");
+        title = title.replace(/\(copyright\)/g, "®");
+        title = title.replace(/\(number\)/g, "°");
+        title = title.replace(/\(bigocir\)/g, "Ô");
+        title = title.replace(/\(square\)/g, "²");
+        title = title.replace(/\(accentaigu\)/g, "`");
+        title = title.replace(/\(eaccentaigu\)/g, "é");
+        title = title.replace(/\(bigeaccentaigu\)/g, "É");
+        title = title.replace(/\(and\)/g, "&");
+        title = title.replace(/\(slash\)/g, "/");
+        title = title.replace(/\(apostrophe\)/g, "’");
+        title = title.replace(/\(quote\)/g, "'");
+        title = title.replace(/\(warning\)/g, "!");
+        title = title.replace(/\(question\)/g, "?");
+        title = title.replace(/\(dolla\)/g, "$");
+        title = title.replace(/\(eaccentgrave\)/g, "è");
+        title = title.replace(/\(hyphen\)/g, "–");
+        return [Meteor.subscribe("contents"), Meteor.subscribe("contents_type"), Meteor.subscribe("productsWebzine", -1, title)];
     },
     data: function() {
         var name = this.params._id;
         console.log('mytuto:' + name);
         name = name.replace(/-/g, " ");
-        //alert('title='+title);
         console.log('mytuto:' + name);
-        return contents.findOne({ "title": { $regex: new RegExp(name, "i") } });
+        var con = contents.findOne({ "title": { $regex: new RegExp(name, "i") } });
+        var data = '';
+        if (con) {
+            var img_id = con.image[0];
+            var url = getImg(img_id);
+            data = { result: con, img_url: url };
+        }
+        return data;
     },
 
     onAfterAction: function() {
         var name = this.params._id;
         name = name.replace(/-/g, " ");
-        var content = contents.findOne({ "title": { $regex: new RegExp("^" + name, "i") } });
+        var data = this.data();
+        var result = data.result;
+        console.log(result);
         if (!Meteor.isClient) {
             return;
         }
-        if (content.content) {
-            var contentDesc = content.content.replace(/(\<[^\>]*\>)|(\&nbsp\;)|(\\n)|(\s\s+)/g, "");
+        if (result.content) {
+            var contentDesc = result.content.replace(/(\<[^\>]*\>)|(\&nbsp\;)|(\\n)|(\s\s+)/g, "");
             if (contentDesc.length > 160) {
                 contentDesc = contentDesc.trim().substring(0, 160).split(" ").slice(0, -1).join(" ") + "…";
             } else {
@@ -1247,13 +1381,18 @@ Router.route('/tutodetails/:_id', {
             }
         }
         SEO.set({
-            title: content.title + " | Safir Iran",
+            title: result.title + " | Safir Iran",
             meta: {
-                'description': contentDesc
+                'description': result.content
             },
             og: {
-                'title': content.title + " | Safir Iran",
-                'description': contentDesc
+                'title': result.title + " | Safir Iran",
+                'image': data.img_url
+                    //'description':result.contentDesc
+            },
+            fb: {
+                app_id: "1712707052305819",
+                admins: "100001452918892"
             }
         });
     }
@@ -1380,7 +1519,6 @@ Router.route('/updatebanner/:_id', {
     name: 'updatebanner',
     template: 'banner',
     data: function() {
-        //Session.set('bannerId',this.params._id);
         return banner.findOne({ _id: this.params._id });
     },
     waitOn: function() {
@@ -1401,7 +1539,6 @@ Router.route('/managequestion', {
 Router.route('/updatequestion/:_id', {
     name: 'updatequestion',
     data: function() {
-        //Session.set('bannerId',this.params._id);
         return question.findOne({ _id: this.params._id });
     },
     waitOn: function() {
@@ -1426,7 +1563,6 @@ Router.route('/import', {
     name: 'import',
     data: function() {
         Meteor.call("readCSV");
-        //return question.findOne({_id: this.params._id});
     }
 });
 Router.route('listorder/', {
@@ -1436,15 +1572,7 @@ Router.route('listorder/', {
     }
 
 });
-// Router.route('/manageUserTracking',{
-//     name: 'manageUserTracking',
-//     waitOn : function () {
-//         return [Meteor.subscribe("tracking")];
-//     },data: function(){
-//         Session.set('users_to_subsribe',[-1]);
 
-//     }
-// });
 Router.route('/manageUserTracking', {
     name: 'manageUserTracking',
     waitOn: function() {
@@ -1457,9 +1585,6 @@ Router.route('/manageUserTracking', {
         } else {
             return [Meteor.subscribe("userTracking", skipNum)];
         }
-    },
-    data: function() {
-        //Session.set('users_to_subsribe',[-1]);
     }
 });
 
@@ -1642,9 +1767,6 @@ Router.route('/forum/listing', {
         return [Meteor.subscribe('users', this.userId)];
     }
 });
-/*Router.route('/forum/listforum', {
-    name: 'listForum'
-});*/
 
 Router.route('/forum/detail/:_id', {
     name: 'forumDetail',
@@ -1666,7 +1788,6 @@ Router.route('/updateProDiscount/:_id', {
         return [TAPi18n.subscribe('discount'), TAPi18n.subscribe("products")];
     },
     data: function() {
-        //Session.set('bannerId',this.params._id);
         return discount.findOne({ _id: this.params._id });
     }
 });
@@ -1688,7 +1809,6 @@ Router.route('/updateCollect/:_id', {
         return [TAPi18n.subscribe('collect')];
     },
     data: function() {
-        //Session.set('bannerId',this.params._id);
         return collect.findOne({ _id: this.params._id });
     }
 });
@@ -1706,7 +1826,6 @@ Router.route('/discount', {
     data: function() {
         var arr = [];
         var result = discount.find();
-        //alert('test'+JSON.stringify(result));
         result.forEach(function(item) {
             var pro = products.findOne({ "_id": item.proId });
             console.log("MY PRODUCT IS===" + pro.title);
@@ -1714,12 +1833,10 @@ Router.route('/discount', {
             var name = pro.title;
             var price_pro = pro.price;
             var price = Number(price_pro);
-            //alert(typeof(price)+"=name="+name);
             var image = pro.image;
             var proId = item.proId;
             var percent = item.percentage;
             console.log("MY ITEM IS===" + percent);
-            //alert(typeof(price));
             var obj = {
                 _id: id,
                 title: name,
@@ -1729,7 +1846,6 @@ Router.route('/discount', {
                 percentage: percent
             }
             arr.push(obj);
-            //alert('title='+pro.title);
         });
         var p_price = Session.get("SORT_DISCOUNT");
         if (p_price == "dis_price") {
@@ -1773,7 +1889,6 @@ Router.route('/listQuizz', {
         return [TAPi18n.subscribe('quizz')];
     },
     data: function() {
-        //Session.set('bannerId',this.params._id);
         return quizz.findOne({ _id: this.params._id });
     }
 });
@@ -1783,7 +1898,6 @@ Router.route('/quizzQA', {
         return [TAPi18n.subscribe('quizz')];
     },
     data: function() {
-        //Session.set('bannerId',this.params._id);
         return quizz.findOne({ _id: this.params._id });
     }
 });
@@ -1841,9 +1955,77 @@ Router.route('/suggestpages/:id', {
 
     }
 });
+
 Router.route('/getusername', {
     name: "getusername"
 });
+
 Router.route('cleardata', {
     name: 'cleardata'
+});
+
+Router.route('popup', {
+    name: 'popup'
+});
+
+Router.route('/addshoplearnit', {
+    name: 'addShopLearnIt'
+});
+Router.route('/manageshoplearnit', {
+    name: 'manageShopLearnIt'
+});
+Router.route('/updateshoplearnit/:_id', {
+    name: 'editShopLearnIt',
+    data: function() {
+        return shopLearnIt.findOne({ _id: this.params._id });
+    }
+});
+Router.route('/manageQuicklink', {
+    name: 'manageQuicklink',
+    waitOn: function() {
+        return [TAPi18n.subscribe('quicklink')];
+    }
+});
+Router.route('/editQuicklink/:id', {
+    name: 'editQuicklink',
+    template: 'manageQuicklink',
+    waitOn: function() {
+        return [TAPi18n.subscribe('quicklink')];
+    },
+    data: function() {
+        return quicklink.findOne({ _id: this.params.id });
+    }
+});
+Router.route('/managelocation', {
+    name: 'manageLocation'
+});
+Router.route('/addlocation', {
+    name: "addLocation"
+});
+Router.route('/updatelocation/:_id', {
+    name: 'editLocation',
+    data: function() {
+        return locations.findOne({ _id: this.params._id });
+    }
+});
+
+/*=== Admin ====*/
+Router.route('/admin/order/:status', {
+    name: 'adminorder',
+    data: function() {
+        return { status: this.params.status };
+    },
+    waitOn: function() {
+        return [TAPi18n.subscribe("products", -1), Meteor.subscribe("order"), Meteor.subscribe('userOrderAdmin')];
+    },
+});
+
+Router.route('/admin/orderdetail/:_id', {
+    name: "adminorderdetail",
+    waitOn: function() {
+        return [TAPi18n.subscribe("products", -1), Meteor.subscribe("order")];
+    },
+    data: function() {
+        return order.findOne({ _id: this.params._id });
+    }
 });

@@ -374,7 +374,6 @@ h1.text-right{
   padding: 5px 5px;
 }
 .list-inline > li {
-  margin-right:50px;
    font-size: 15px;
     font-weight: bold;
 }
@@ -471,8 +470,6 @@ p.text-center{
 .list-inline > li {
     font-size: 12px;
     font-weight: 900;
-    margin-right: 50px;
-
 }
 #hrlook {
     -moz-border-bottom-colors: none;
@@ -875,9 +872,8 @@ h1.text-right{
   padding: 5px 5px;
 }
 .list-inline > li {
-  margin-right:50px;
-   font-size: 15px;
-    font-weight: bold;
+  font-size: 15px;
+  font-weight: bold;
 }
 .list-inline > li > span{
   margin-left:25px;
@@ -972,8 +968,6 @@ p.text-center{
 .list-inline > li {
     font-size: 12px;
     font-weight: 900;
-    margin-right: 50px;
-
 }
 #hrlook {
     -moz-border-bottom-colors: none;

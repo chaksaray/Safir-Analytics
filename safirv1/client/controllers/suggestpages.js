@@ -1,9 +1,9 @@
 Template.suggestpages.helpers({
     getDataTuto: function() {
-        var result = contents_type.findOne({ type: "Tuto" });
-        var contentsresult = contents.find({ typeid: result._id }, { limit: 3 });
-        //alert("helle world"+JSON.stringify(contentsresult));
-        return contentsresult;
+       /* var result = contents_type.findOne({ type: "Tuto" });
+        var contentsresult = contents.find({ typeid: result._id }, { limit: 3 })
+        return contentsresult;*/
+        return contents.find({});
 
     },
     getDataLipsticks: function() {

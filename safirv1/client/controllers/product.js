@@ -1,4 +1,3 @@
-// add Products
 Session.set("tags", "");
 Session.set("category", "");
 Session.set("filter", "");
@@ -15,10 +14,11 @@ Session.set('fiterValue', "");
 Session.set('tags', '');
 Session.setDefault('userId', '');
 Session.set('removefilter', '');
-Session.set('numberOfReviews', 2);
+Session.set('numberOfReviews', 5);
 Session.set("PRICE", '');
 Session.set('cateTag', '');
 Session.set('limitmanagequery', 16);
+
 Meteor.call('getPath', function(err, res) {
     Session.set('path', res);
 });
@@ -73,6 +73,7 @@ Template.addproduct.events({
     'click #btnAdd': function(e) {
         e.preventDefault();
         var imgageArray = [];
+        var videoArray = [];
         var title = $('#title').val();
         var description = CKEDITOR.instances.editor1.getData(); //$('#editor1').val();// $('.froala-element').html();//froala-element
         var price = -1; //$('#price').val();
@@ -86,9 +87,18 @@ Template.addproduct.events({
         var category = $('#category').val();
         var status = 0;
         var ratio = 100;
+        //var video =$('#video').val();
+        var videoUrl = $('[name=videoUrl]').val();
+        videoUrl = videoUrl.replace("watch?v=", "embed/");
+        videoUrl = videoUrl.replace("&list=", "?list=");
+        videoUrl = videoUrl.replace(/\#t.*|\&index.*/g, "");
 
         $('input[name="checkImg"]:checked').each(function() {
             imgageArray.push(this.value);
+        });
+
+        $('input[name="checkVideo"]:checked').each(function() {
+            videoArray.push(this.value);
         });
 
 
@@ -189,7 +199,9 @@ Template.addproduct.events({
             tags: jsonToSend,
             attr: listAttr,
             articles: listArticle,
-            tutoes: listTutoes
+            tutoes: listTutoes,
+            video: videoArray,
+            videoUrl: videoUrl
 
         }
         if (Router.current().route.getName() == 'updateproduct') {
@@ -197,10 +209,12 @@ Template.addproduct.events({
             data._id = currentid;
             var id = Meteor.call('updateProduct', this._id, data);
             delete Session.keys['multiUploadProduct'];
+            delete Session.keys['multiUploadVideo'];
 
         } else {
             var id = Meteor.call('addPro', data);
             delete Session.keys['multiUploadProduct'];
+            delete Session.keys['multiUploadVideo'];
 
         }
         Router.go('manageproduct');
@@ -214,22 +228,6 @@ Template.addproduct.events({
         for (var i = 0, ln = files.length; i < ln; i++) {
             images.insert(files[i], function(err, fileObj) {
                 Session.set('ADDIMAGEID', fileObj._id);
-            });
-        }
-    },
-    'click #rmFile': function(e) {
-        e.preventDefault();
-        var result = confirm('Do you want to delete?');
-        if (result) {
-            var aferRemove = Session.get('multiUploadProduct').replace(this.image, '');
-            Session.set('multiUploadProduct', aferRemove);
-            images.remove(this.image, function(err, file) {
-                if (err) {
-                    console.log('error', err);
-                } else {
-                    console.log('remove success');
-                    success();
-                };
             });
         }
     },
@@ -265,6 +263,25 @@ Template.addproduct.events({
                 Session.set('multiUploadProduct', strImage);
                 var result = Session.get('multiUploadProduct');
 
+            });
+        }
+
+    },
+    'change #video': function(event, template) {
+        event.preventDefault();
+        var files = event.target.files;
+        for (var i = 0, ln = files.length; i < ln; i++) {
+            images.insert(files[i], function(err, fileObj) {
+                if (Session.get('multiUploadVideo')) {
+                    var strVideo = Session.get('multiUploadVideo') + "," + fileObj._id;
+                    $("#reload").load();
+                } else {
+                    var strVideo = fileObj._id;
+                    $("#reload").load();
+                }
+                Session.set('multiUploadVideo', strVideo);
+                var result = Session.get('multiUploadVideo');
+                $("#reload").load();
             });
         }
 
@@ -374,6 +391,7 @@ Template.addproduct.events({
         // end
 
 });
+
 
 // Template.updateproduct.events({
 // 	getTag: function(parentid){
@@ -658,8 +676,6 @@ Template.addproduct.helpers({
     listAttr: function() {
         if (Session.get('attributes') == '')
             return;
-        //var clear_undefine=Session.get('attributes').replace('undefined','')
-        //Session.set('attributes',clear_undefine);
         var liste = Session.get('attributes').split(";");
         var tab = [];
         for (var i = 0; i < liste.length; i++) {
@@ -754,7 +770,6 @@ Template.addproduct.helpers({
         var result = contents.find({ typeid: typeId });
         console.log("article--- " + JSON.stringify(result));
         return result;
-        //return contents_type.find({});
     },
     getTypeName: function(typeid) {
         return contents_type.findOne({ _id: typeid }).type;
@@ -775,8 +790,6 @@ Template.addproduct.helpers({
     getTitle: function(id) {
         return contents.findOne({ _id: id }).title;
     },
-
-    // sokhy tuto
     getTutoes: function() {
         var tutoId = contents_type.findOne({ type: "Tuto" })._id;
         console.log("tutoId-- " + tutoId);
@@ -809,7 +822,6 @@ Template.addproduct.helpers({
         return arr;
 
     },
-    //add product
     getIdImageUpdate: function(image) {
 
         if (Session.get('multiUploadProduct')) {
@@ -832,6 +844,24 @@ Template.addproduct.helpers({
 
         return arr;
     },
+    getIdVedeoUpdate: function(video) {
+        if (Session.get('multiUploadVideo')) {
+            var str = video.toString() + ',' + Session.get('multiUploadVideo');
+        } else {
+            var str = video.toString();
+        }
+        var arr = [];
+        var arrayVideo = str.split(",");
+        for (var i = 0; i < arrayVideo.length; i++) {
+            if (arrayVideo[i]) {
+                var obj = {
+                    video: arrayVideo[i]
+                }
+                arr.push(obj);
+            }
+        }
+        return arr;
+    },
     getIdImageAdd: function() {
 
         var str = Session.get('multiUploadProduct');
@@ -842,6 +872,21 @@ Template.addproduct.helpers({
             if (arrayImage[i]) {
                 var obj = {
                     image: arrayImage[i]
+                }
+                arr.push(obj);
+            }
+        }
+
+        return arr;
+    },
+    getIdVideoAdd: function() {
+        var str = Session.get('multiUploadVideo');
+        var arr = [];
+        var arrayVideo = str.split(",");
+        for (var i = 0; i < arrayVideo.length; i++) {
+            if (arrayVideo[i]) {
+                var obj = {
+                    video: arrayVideo[i]
                 }
                 arr.push(obj);
             }
@@ -1049,7 +1094,6 @@ Template.details.events({
             }
         }
         $("#current_attr").text(title);
-        //$(".img_principle").attr('src',url);
         Session.set('miniature', 0);
 
     },
@@ -1088,20 +1132,6 @@ Template.details.events({
     },
     'click #addtocart': function(e, tpl) {
         e.preventDefault();
-        // HTTP.call("POST", "https://www.google-analytics.com/collect?", {
-        //     params: {
-        //         'v': '1',
-        //         'tid': 'UA-71059459-2',
-        //         'cid': '5cbeab51-99b0-4c05-88b2-d2ba0d393aa2',
-        //         't': 'event',
-        //         'dp': '/',
-        //         'ec': 'Purchase',
-        //         'ea': 'click',
-        //         'el': 'add to card',
-        //         'ev': '1000'
-
-        //     }
-        // });
         var method = 'POST';
         var url = 'https://www.google-analytics.com/collect';
         var options = {
@@ -1118,7 +1148,6 @@ Template.details.events({
 
             }
         }
-
         Meteor.call('eventCall', method, url, options, function(error, result) {
             if (error) {
                 console.log('Analytic CLIENT ERRR');
@@ -1173,7 +1202,7 @@ Template.details.events({
             };
             Meteor.call('addtocart', obj);
             if (TAPi18n.getLanguage() == 'fa') {
-                Bert.alert('درج افزودن به سبد خرید موفقیت', 'success', 'growl-bottom-right');
+                Bert.alert('محصول با موفقیت به سبد کالا اضافه شد', 'success', 'growl-bottom-right');
             } else {
                 Bert.alert('Insert Add To Cart success', 'success', 'growl-bottom-right');
             }
@@ -1194,7 +1223,7 @@ Template.details.events({
             var detailId = this._id;
             var collection = "products";
             var userid = Meteor.userId();
-            var profile = users.findOne({ _id: userid }).profile;
+            var profile = Meteor.users.findOne({ _id: userid }).profile;
             var point = 5;
             if (profile.shipcard != null)
                 var upoint = Number(profile.shipcard.point);
@@ -1229,15 +1258,35 @@ Template.details.events({
                     Bert.alert('Please put a text before to click the button!', 'success', 'growl-bottom-right');
                 }
                 $(".close").click();
-                //alert("Please put a text before to click the button.");
             } else {
                 Meteor.call('insertTradeDetail', object, function(err) {
                     if (err) {
                         console.log(err);
                     } else {
-                        Meteor.call('earnPoint', userid, upoint);
-                        //alert("You have earned "+point+" points!");
+                        Meteor.call('earnPoint', userid, upoint, function(err) {
+                            if (err) {
+                                console.log("error " + reason);
+                            } else {
+                                console.log("success" + upoint);
+                                if (upoint == 10) {
+                                    console.log("upoint ==10");
+                                    $("#myModaltuto").show();
 
+                                } else if (upoint == 15) {
+                                    $("#myModaltuto2").show();
+
+                                } else {
+                                    $("#myModaltuto").parent().hide();
+                                    $("#myModaltuto2").parent().hide();
+                                }
+                            }
+                        });
+                        if (TAPi18n.getLanguage() == 'fa') {
+                            Bert.alert('شما باید کسب 5 امتیاز بیشتر!', 'success', 'growl-bottom-right');
+                        } else {
+                            Bert.alert('You have earn 5 point more!', 'success', 'growl-bottom-right');
+                        }
+                        $(".close").click();
                     }
                 });
             }
@@ -1248,8 +1297,16 @@ Template.details.events({
                 Bert.alert('Please login before making translation!', 'success', 'growl-bottom-right');
             }
             $('.close').click();
-            //alert("Please login before making translation!");
         }
+    },
+    'click #popup': function(e) {
+        e.preventDefault();
+        $("#myModaltuto2").css("display", "none");
+        $("#myModaltuto").parent().hide();
+        console.log("hide");
+    },
+    'click #popup1': function(e) {
+        $("#myModaltuto").parent().hide();
     }
 });
 Template.manageproduct.helpers({
@@ -1261,17 +1318,18 @@ Template.manageproduct.helpers({
         else
             return [p.image];
     },
+    getListVideo: function(product) {
+        var v = products.findOne({ _id: product });
+        console.log("video pro" + v);
+        if (v.video instanceof Array)
+            return v.video;
+        else
+        //return [v.video];
+            return;
+    },
     getImgeAttribute: function(oldId) {
         var imageAttr = attribute.find({ "product": oldId });
-        //console.log("hi hi " + imageAttr)+ "hii";
         return imageAttr;
-        // var imageAttr=attribute.find({"product":oldId});
-        // console.log("img imageAttr" + imageAttr);
-        // if(imageAttr.image instanceof Array)
-        // 	return imageAttr.image;
-        // console.log("sokhy " + imageArr.image);
-        // else
-        // 	return [imageAttr.image];
     },
     getBrandSort: function() {
         var arrBrand = [];
@@ -1319,6 +1377,8 @@ Template.manageproduct.helpers({
                 shop: value.shop,
                 date: value.date,
                 tags: value.tags,
+                video: value.video,
+                videoUrl: value.videoUrl
             };
             console.log("MYPORDUCT:" + JSON.stringify(object));
             arr.push(object);
@@ -1371,10 +1431,20 @@ Template.manageproduct.helpers({
 });
 
 Template.details.helpers({
+    getListVideo: function(product) {
+        var v = products.findOne({ _id: product });
+
+        console.log("video pro" + v);
+        if (v.video instanceof Array)
+            return v.video;
+        else
+            return [v.video];
+    },
     getCategory: function() {
         return categories.findOne({ "_id": this.category });
     },
     getTagList: function(productid) {
+
         var pro = products.findOne({
             _id: productid
         });
@@ -1546,7 +1616,6 @@ Template.details.helpers({
     },
     getParentTagName: function(id) {
         var parentTage = products.findOne({ _id: id });
-        //var parentname = parent_tags.findOne({"_id":id}).title;
         if (parentTage) {
             var y = parentTage.tags;
             var x = {};
@@ -1572,8 +1641,6 @@ Template.details.helpers({
                         var tag = parent_tags.findOne({
                             _id: data[k]
                         }).title;
-                        //alert(tag);
-                        //var name = tag.title;
                         s += '<li><strong>' + tag + '</strong> : ';
                     } else {
                         s += data[k];
@@ -1584,7 +1651,6 @@ Template.details.helpers({
                         s += '</li>';
                     }
                 }
-                //console.log(s+"hjklkkj");
             };
 
             return s;
@@ -1592,7 +1658,6 @@ Template.details.helpers({
 
     },
     getReviews: function(reviews, filtre, toremove) {
-
         console.log('reloading reviews...' + Session.get('fiterValue'));
         var toRemove = Session.get('removefilter').split(':');
         var myFilter = Session.get('fiterValue');
@@ -1780,7 +1845,6 @@ Template.details.rendered = function() {
                 var curUser = users.findOne({ "_id": coms[i].user });
                 console.log('comm selected' + curUser.profile.tag);
 
-                //if(curUser.profile.tag!='undefined'){
                 if (curUser.profile.hasOwnProperty('tag')) {
                     console.log('saving' + curUser.profile.tag);
                     for (var j = 0; j < curUser.profile.tag.length; j++)
@@ -1789,14 +1853,12 @@ Template.details.rendered = function() {
 
             }
         }
-        console.log("tagggg:" + arr);
     }
     var result = [];
     for (var i = 0; i < arr.length; i++) {
         if (result.indexOf(arr[i]) < 0)
             result.push(arr[i]);
     }
-    console.log("final:" + result);
 
     $('#input').octofilter({
 
@@ -1809,7 +1871,6 @@ Template.details.rendered = function() {
     });
     $('.container').click();
     $('.octofilter-link').click(function() {
-        console.log("TRIGGER");
         var value = $(this).text();
 
         if ($(this).hasClass('octofiltered')) { //delete
@@ -1867,10 +1928,8 @@ Template.addproduct.rendered = function() {
 
             html += '<div class="row" style="margin-bottom:5px;">';
             html += '<label class="control-label col-sm-3" for="tag"></label>';
-            //html += ''
             html += '<div class="col-sm-3">';
             html += '<input class="form-control shopname" type="text" name="shopname" dataid="' + value + '" value="' + text + '">';
-            //i++;
             html += '</div>';
             html += '<div class="col-sm-3"><input type="text" name="instock" class="form-control instock" value="' + instock + '"></div>';
             html += '<div class="col-sm-3"><a class="remove glyphicon glyphicon-remove-circle"></a></div>';

@@ -1,0 +1,102 @@
+/* CLIENT CAROUSEL STYLES */
+.clients-carousel {
+	margin-top: 50px; /*SMALL TOP MARGIN FOR SPACE */
+	padding: 0 0 30px 15px;
+}
+
+.clients-carousel .thumbnail {
+    border: 0px solid #000;
+	overflow:hidden;
+	padding:0px;
+}
+
+.clients-carousel .carousel-control.left {
+    height: 42px;
+    width: 23px;
+    margin-top: 145px;
+    background:url(../images/prev1.png) no-repeat;
+    left: -35px;
+}
+
+.clients-carousel .carousel-control.right {
+    height: 42px;
+    width: 23px;
+    margin-top: 145px;
+    background:url(../images/next1.png) no-repeat;
+    right: -35px;
+}
+
+.clients-carousel img {
+    width: 100%;
+    height: 120px;
+}
+/* quickview */
+.hold-quickview{
+    position:relative;
+}
+.quickview{
+    position:absolute;
+    
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom:0;
+    margin-left: auto;
+    margin-right: auto;
+}
+.quickview .btn-quickview{
+    background:#000;
+    color:#fff;
+    border-radius:0px;
+    display:none;
+    font-size: 14px;
+    padding: 6px 12px;
+}
+.btn-quickview:hover{
+    background:#000;
+    color:#ccc;
+    border-radius:0px;
+}
+
+.thumbnail p{
+    font-size:14px;
+    margin-bottom:8px;
+}
+.rating{
+    font-size:18px;
+    margin-bottom:15px;
+}
+
+.thumbnail{
+    border:0px solid transparent;
+    overflow:hidden;
+}
+.thumbnail .views{
+    font-size:14px;
+    margin-bottom:8px;
+    color:#999998;
+    font-style:italic;
+}
+.caption > p.title > a{
+    color:#333;
+}
+.caption > p > a.price{
+    font-size:24px;
+    color:#333;
+}
+.caption > p > a.heart{
+    font-size:24px;
+    color:#333;
+}
+.fa-heart-full{
+    color:#dd2a1b
+}
+.all-product ul li.col-md-3{
+    height:400px;
+}
+.item li{
+    list-style: none;
+}
+.title{
+    height: 40px;
+}
