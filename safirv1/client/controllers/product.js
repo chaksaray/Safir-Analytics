@@ -1132,8 +1132,9 @@ Template.details.events({
     },
     'click #addtocart': function(e, tpl) {
         e.preventDefault();
+        // ga('send', 'event', 'mobile', 'click to call', '888-259-4979');
         var method = 'POST';
-        var url = 'https://www.google-analytics.com/collect';
+        var url = 'https://www.google-analytics.com/collect?v=1&t=event&tid=UA-71059459-2&cid=555&ec=purchase&ea=click&el=addTocart&ev=1000';
         var options = {
             params: {
                 'v': '1',
@@ -1147,7 +1148,7 @@ Template.details.events({
                 'ev': '1000'
             }
         }
-        Meteor.call('eventCall', method, url, options, function(error, result) {
+        Meteor.call('eventCall', url, function(error, result) {
             if (error) {
                 console.log('Analytic CLIENT ERRR');
                 console.log(error);
