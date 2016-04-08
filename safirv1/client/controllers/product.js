@@ -1135,7 +1135,7 @@ Template.details.events({
         var method = 'POST';
         var url = 'https://www.google-analytics.com/collect';
         var options = {
-            headers: {
+            params: {
                 'v': '1',
                 'tid': 'UA-71059459-2',
                 'cid': '5cbeab51-99b0-4c05-88b2-d2ba0d393aa2',
@@ -1145,7 +1145,6 @@ Template.details.events({
                 'ea': 'click',
                 'el': 'add to card',
                 'ev': '1000'
-
             }
         }
         Meteor.call('eventCall', method, url, options, function(error, result) {

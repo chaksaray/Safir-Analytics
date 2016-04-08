@@ -6,4 +6,5 @@ Meteor.startup(function (){
 
   ga('create', 'UA-71059459-2', 'auto');
   ga('send', 'pageview');
+  ga('send', 'event');
 });
